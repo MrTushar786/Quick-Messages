@@ -6,16 +6,8 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class WhatsAppAutoSendService : AccessibilityService() {
-
-    private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     companion object {
         @Volatile
@@ -80,16 +72,8 @@ class WhatsAppAutoSendService : AccessibilityService() {
         val rootNode = rootInActiveWindow ?: return
         try {
             if (tryClickSendButton(rootNode)) {
-                // Successfully triggered Send! Disarm to prevent duplicate clicks
+                // Successfully triggered Send! Disarm to prevent duplicate clicks and stay in WhatsApp
                 autoSendArmedTimestamp = 0L
-
-                // Instant Auto-Close: Automatically dismiss WhatsApp and return to Home Screen
-                serviceScope.launch {
-                    delay(300) // Brief 300ms pause allowing WhatsApp to process send payload
-                    performGlobalAction(GLOBAL_ACTION_BACK)
-                    delay(150)
-                    performGlobalAction(GLOBAL_ACTION_HOME)
-                }
             }
         } finally {
             rootNode.recycle()
@@ -145,6 +129,5 @@ class WhatsAppAutoSendService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         isServiceConnected = false
-        serviceJob.cancel()
     }
 }

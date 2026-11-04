@@ -10,7 +10,6 @@ import com.example.data.models.DispatchMode
 import com.example.data.models.QuickMessage
 import com.example.data.models.Recipient
 import com.example.utils.PhoneNumberValidator
-import com.example.utils.SmsHelper
 import com.example.utils.WhatsAppHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -158,25 +157,6 @@ class QuickMessageViewModel(
     fun dispatchMessage(context: Context, message: QuickMessage) {
         val targetRecipient = message.customRecipient ?: _uiState.value.recipient
         when (_uiState.value.dispatchMode) {
-            DispatchMode.DIRECT_SMS -> {
-                val smsResult = SmsHelper.sendDirectSms(
-                    context = context,
-                    recipient = targetRecipient,
-                    messageText = message.messageText
-                )
-                when (smsResult) {
-                    is SmsHelper.SmsResult.Success -> {
-                        _uiState.update { it.copy(snackbarMessage = "SMS sent to ${targetRecipient.displayFormatted}") }
-                    }
-                    is SmsHelper.SmsResult.PermissionRequired -> {
-                        _uiState.update { it.copy(snackbarMessage = "SMS permission needed to send background SMS") }
-                    }
-                    is SmsHelper.SmsResult.Error -> {
-                        _uiState.update { it.copy(snackbarMessage = smsResult.message) }
-                    }
-                }
-            }
-
             DispatchMode.WHATSAPP_AUTO -> {
                 // Arm the auto-send service before launching WhatsApp
                 WhatsAppAutoSendService.armAutoSend()

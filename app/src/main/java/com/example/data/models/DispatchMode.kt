@@ -3,11 +3,7 @@ package com.example.data.models
 enum class DispatchMode(val displayName: String, val description: String) {
     WHATSAPP_AUTO(
         "WhatsApp Auto-Send",
-        "Auto-sends in WhatsApp and instantly closes back to your screen in 0.3s"
-    ),
-    DIRECT_SMS(
-        "Direct SMS",
-        "Sends SMS text silently in background with zero screens opening"
+        "Opens WhatsApp and automatically taps the Send button for you"
     ),
     WHATSAPP_MANUAL(
         "WhatsApp Manual",

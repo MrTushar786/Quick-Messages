@@ -1,6 +1,5 @@
 package com.example.ui.screens
 
-import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -61,7 +60,6 @@ import com.example.ui.theme.GreenFab
 import com.example.ui.theme.TextWhite
 import com.example.ui.viewmodel.QuickMessageUiState
 import com.example.utils.GalleryHelper
-import com.example.utils.SmsHelper
 
 @Composable
 fun HomeScreen(
@@ -91,10 +89,6 @@ fun HomeScreen(
             onSendRecentPhotoClick()
         }
     }
-
-    val smsPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { _ -> }
 
     LaunchedEffect(Unit) {
         onCheckAccessibility()
@@ -212,17 +206,12 @@ fun HomeScreen(
                         )
                     }
 
-                    // Auto-Send & Dispatch Mode Switcher
+                    // WhatsApp Auto-Send vs Manual Mode Switcher
                     item {
                         DispatchModeCard(
                             currentMode = uiState.dispatchMode,
                             isAccessibilityEnabled = uiState.isAccessibilityEnabled,
-                            onModeSelected = { mode ->
-                                if (mode == DispatchMode.DIRECT_SMS && !SmsHelper.hasPermission(context)) {
-                                    smsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
-                                }
-                                onModeSelected(mode)
-                            }
+                            onModeSelected = onModeSelected
                         )
                     }
 
@@ -247,7 +236,6 @@ fun HomeScreen(
                     ) { msg ->
                         val buttonText = when (uiState.dispatchMode) {
                             DispatchMode.WHATSAPP_AUTO -> if (uiState.isAccessibilityEnabled) "Auto-Send" else "Send"
-                            DispatchMode.DIRECT_SMS -> "Send SMS"
                             DispatchMode.WHATSAPP_MANUAL -> "Send"
                         }
 

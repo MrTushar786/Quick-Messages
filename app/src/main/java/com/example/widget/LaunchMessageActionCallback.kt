@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
+import com.example.accessibility.WhatsAppAutoSendService
+import com.example.data.MessageRepository
+import com.example.data.models.DispatchMode
 import com.example.data.models.Recipient
 import com.example.utils.WhatsAppHelper
 
@@ -33,30 +36,18 @@ class LaunchMessageActionCallback : ActionCallback {
             phoneNumber = phone
         )
 
-        val repository = com.example.data.MessageRepository(context)
+        val repository = MessageRepository(context)
         val mode = repository.getDispatchMode()
 
-        when (mode) {
-            com.example.data.models.DispatchMode.DIRECT_SMS -> {
-                com.example.utils.SmsHelper.sendDirectSms(context, recipient, messageText)
-            }
-            com.example.data.models.DispatchMode.WHATSAPP_AUTO -> {
-                com.example.accessibility.WhatsAppAutoSendService.armAutoSend()
-                WhatsAppHelper.launchWhatsApp(
-                    context = context,
-                    recipient = recipient,
-                    messageText = messageText,
-                    showFeedbackToast = true
-                )
-            }
-            com.example.data.models.DispatchMode.WHATSAPP_MANUAL -> {
-                WhatsAppHelper.launchWhatsApp(
-                    context = context,
-                    recipient = recipient,
-                    messageText = messageText,
-                    showFeedbackToast = true
-                )
-            }
+        if (mode == DispatchMode.WHATSAPP_AUTO) {
+            WhatsAppAutoSendService.armAutoSend()
         }
+
+        WhatsAppHelper.launchWhatsApp(
+            context = context,
+            recipient = recipient,
+            messageText = messageText,
+            showFeedbackToast = true
+        )
     }
 }

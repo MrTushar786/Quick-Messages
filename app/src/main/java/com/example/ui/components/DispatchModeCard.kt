@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -78,7 +76,7 @@ fun DispatchModeCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Auto-Send Mode",
+                        text = "WhatsApp Mode",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -107,30 +105,23 @@ fun DispatchModeCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Selector Pills Row
+            // Selector Pills Row (WhatsApp Auto vs Manual)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ModeSelectorPill(
-                    title = "WhatsApp Auto",
+                    title = "WhatsApp Auto-Send",
                     isSelected = currentMode == DispatchMode.WHATSAPP_AUTO,
                     onClick = { onModeSelected(DispatchMode.WHATSAPP_AUTO) },
                     modifier = Modifier.weight(1f)
                 )
 
                 ModeSelectorPill(
-                    title = "Direct SMS",
-                    isSelected = currentMode == DispatchMode.DIRECT_SMS,
-                    onClick = { onModeSelected(DispatchMode.DIRECT_SMS) },
-                    modifier = Modifier.weight(1f)
-                )
-
-                ModeSelectorPill(
-                    title = "Manual",
+                    title = "Manual Pre-fill",
                     isSelected = currentMode == DispatchMode.WHATSAPP_MANUAL,
                     onClick = { onModeSelected(DispatchMode.WHATSAPP_MANUAL) },
-                    modifier = Modifier.weight(0.8f)
+                    modifier = Modifier.weight(1f)
                 )
             }
 
