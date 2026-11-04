@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Quick Messages</string>
+    <string name="widget_name">WhatsApp Quick Messages</string>
+    <string name="widget_description">Quick-tap WhatsApp message widget for Nothing Phone (1)</string>
+    <string name="accessibility_service_description">Automatically taps the Send button in WhatsApp when dispatching a Quick Message.</string>
+</resources>

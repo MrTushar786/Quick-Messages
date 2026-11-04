@@ -1,0 +1,6 @@
+{
+  "name": "Quick Messages",
+  "description": "WhatsApp Quick Messages Widget for Nothing Phone (1)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
