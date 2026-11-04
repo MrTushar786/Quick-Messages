@@ -67,12 +67,5 @@ class QuickMessageUnitTest {
         assertTrue(permissions.isNotEmpty())
         assertTrue(permissions.all { it.startsWith("android.permission.") })
     }
-
-    @Test
-    fun testDispatchModes_defined() {
-        val modes = com.example.data.models.DispatchMode.values()
-        assertTrue(modes.contains(com.example.data.models.DispatchMode.WHATSAPP_AUTO))
-        assertTrue(modes.contains(com.example.data.models.DispatchMode.WHATSAPP_MANUAL))
-    }
 }
 

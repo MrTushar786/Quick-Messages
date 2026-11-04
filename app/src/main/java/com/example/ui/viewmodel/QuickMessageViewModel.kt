@@ -4,9 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.accessibility.WhatsAppAutoSendService
 import com.example.data.MessageRepository
-import com.example.data.models.DispatchMode
 import com.example.data.models.QuickMessage
 import com.example.data.models.Recipient
 import com.example.utils.PhoneNumberValidator
@@ -22,8 +20,6 @@ import java.util.UUID
 data class QuickMessageUiState(
     val recipient: Recipient = Recipient(),
     val messages: List<QuickMessage> = emptyList(),
-    val dispatchMode: DispatchMode = DispatchMode.WHATSAPP_AUTO,
-    val isAccessibilityEnabled: Boolean = false,
     val isLoading: Boolean = true,
     val selectedMessageForEdit: QuickMessage? = null,
     val isRecipientDialogOpen: Boolean = false,
@@ -41,32 +37,18 @@ class QuickMessageViewModel(
         viewModelScope.launch {
             combine(
                 repository.recipientFlow,
-                repository.messagesFlow,
-                repository.dispatchModeFlow
-            ) { recipient, messages, mode ->
-                Triple(recipient, messages, mode)
-            }.collect { (recipient, messages, mode) ->
+                repository.messagesFlow
+            ) { recipient, messages ->
+                Pair(recipient, messages)
+            }.collect { (recipient, messages) ->
                 _uiState.update { current ->
                     current.copy(
                         recipient = recipient,
                         messages = messages,
-                        dispatchMode = mode,
                         isLoading = false
                     )
                 }
             }
-        }
-    }
-
-    fun checkAccessibilityStatus(context: Context) {
-        val enabled = WhatsAppAutoSendService.isAccessibilityServiceEnabled(context)
-        _uiState.update { it.copy(isAccessibilityEnabled = enabled) }
-    }
-
-    fun setDispatchMode(mode: DispatchMode) {
-        viewModelScope.launch {
-            repository.updateDispatchMode(mode)
-            _uiState.update { it.copy(dispatchMode = mode) }
         }
     }
 
@@ -154,62 +136,32 @@ class QuickMessageViewModel(
         }
     }
 
-    fun dispatchMessage(context: Context, message: QuickMessage) {
+    fun testLaunchWhatsApp(context: Context, message: QuickMessage) {
         val targetRecipient = message.customRecipient ?: _uiState.value.recipient
-        when (_uiState.value.dispatchMode) {
-            DispatchMode.WHATSAPP_AUTO -> {
-                // Arm the auto-send service before launching WhatsApp
-                WhatsAppAutoSendService.armAutoSend()
-                val isServiceActive = WhatsAppAutoSendService.isAccessibilityServiceEnabled(context)
-                val result = WhatsAppHelper.launchWhatsApp(
-                    context = context,
-                    recipient = targetRecipient,
-                    messageText = message.messageText,
-                    showFeedbackToast = false
-                )
-                when (result) {
-                    is WhatsAppHelper.LaunchResult.Success -> {
-                        if (isServiceActive) {
-                            _uiState.update { it.copy(snackbarMessage = "Auto-sending via WhatsApp...") }
-                        } else {
-                            _uiState.update { it.copy(snackbarMessage = "WhatsApp opened. Turn on Accessibility for auto-clicking Send!") }
-                        }
-                    }
-                    is WhatsAppHelper.LaunchResult.RedirectedToPlayStore -> {
-                        _uiState.update { it.copy(snackbarMessage = "WhatsApp not installed. Opening Google Play...") }
-                    }
-                    is WhatsAppHelper.LaunchResult.Error -> {
-                        _uiState.update { it.copy(snackbarMessage = result.message) }
-                    }
-                }
+        val result = WhatsAppHelper.launchWhatsApp(
+            context = context,
+            recipient = targetRecipient,
+            messageText = message.messageText,
+            showFeedbackToast = true
+        )
+        when (result) {
+            is WhatsAppHelper.LaunchResult.Success -> {
+                _uiState.update { it.copy(snackbarMessage = "Opened WhatsApp chat for '${message.title}'") }
             }
-
-            DispatchMode.WHATSAPP_MANUAL -> {
-                val result = WhatsAppHelper.launchWhatsApp(
-                    context = context,
-                    recipient = targetRecipient,
-                    messageText = message.messageText,
-                    showFeedbackToast = true
-                )
-                if (result is WhatsAppHelper.LaunchResult.Success) {
-                    _uiState.update { it.copy(snackbarMessage = "Opened WhatsApp chat for '${message.title}'") }
-                }
+            is WhatsAppHelper.LaunchResult.RedirectedToPlayStore -> {
+                _uiState.update { it.copy(snackbarMessage = "WhatsApp not installed. Opening Google Play...") }
+            }
+            is WhatsAppHelper.LaunchResult.Error -> {
+                _uiState.update { it.copy(snackbarMessage = result.message) }
             }
         }
     }
-
-    fun testLaunchWhatsApp(context: Context, message: QuickMessage) = dispatchMessage(context, message)
 
     fun sendRecentMedia(context: Context) {
         val latestMedia = com.example.utils.GalleryHelper.getLatestMedia(context)
         if (latestMedia == null) {
             _uiState.update { it.copy(snackbarMessage = "No photos or videos found in gallery or permission needed") }
             return
-        }
-
-        // If in auto mode, also arm auto-send
-        if (_uiState.value.dispatchMode == DispatchMode.WHATSAPP_AUTO) {
-            WhatsAppAutoSendService.armAutoSend()
         }
 
         val result = WhatsAppHelper.launchWhatsAppWithMedia(

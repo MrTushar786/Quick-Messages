@@ -63,6 +63,7 @@ object WhatsAppHelper {
         }
 
         val uri = buildWhatsAppUri(cleanNumber, messageText)
+        com.example.accessibility.WhatsAppAutoSendService.armAutoSend()
 
         // Attempt 1: Target standard WhatsApp application directly
         val waIntent = Intent(Intent.ACTION_VIEW, uri).apply {
@@ -122,6 +123,7 @@ object WhatsAppHelper {
         }
 
         val whatsappJid = "${cleanNumber}@s.whatsapp.net"
+        com.example.accessibility.WhatsAppAutoSendService.armAutoSend()
 
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = mimeType

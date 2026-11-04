@@ -84,12 +84,6 @@ fun QuickMessageApp(
                 onEditRecipientClick = {
                     viewModel.openRecipientDialog()
                 },
-                onModeSelected = { mode ->
-                    viewModel.setDispatchMode(mode)
-                },
-                onCheckAccessibility = {
-                    viewModel.checkAccessibilityStatus(context)
-                },
                 onSaveRecipient = { name, code, phone ->
                     viewModel.updateRecipient(name, code, phone)
                 },

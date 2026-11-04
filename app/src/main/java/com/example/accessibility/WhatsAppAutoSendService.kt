@@ -18,8 +18,8 @@ class WhatsAppAutoSendService : AccessibilityService() {
         var autoSendArmedTimestamp: Long = 0L
 
         /**
-         * Arms the auto-send service for the next 6 seconds so it only clicks
-         * when triggered intentionally from the Quick Messages app or widget.
+         * Arms the auto-send service for the next 8 seconds so it clicks Send
+         * as soon as WhatsApp opens (for both text messages and photos/videos).
          */
         fun armAutoSend() {
             autoSendArmedTimestamp = System.currentTimeMillis()
@@ -64,15 +64,15 @@ class WhatsAppAutoSendService : AccessibilityService() {
         }
 
         val elapsed = System.currentTimeMillis() - autoSendArmedTimestamp
-        // Only trigger if armed within the last 6 seconds
-        if (elapsed > 6000) {
+        // Only trigger if armed within the last 8 seconds
+        if (elapsed > 8000) {
             return
         }
 
         val rootNode = rootInActiveWindow ?: return
         try {
             if (tryClickSendButton(rootNode)) {
-                // Successfully triggered Send! Disarm to prevent duplicate clicks and stay in WhatsApp
+                // Successfully triggered Send! Disarm and keep WhatsApp open
                 autoSendArmedTimestamp = 0L
             }
         } finally {
@@ -81,34 +81,45 @@ class WhatsAppAutoSendService : AccessibilityService() {
     }
 
     private fun tryClickSendButton(root: AccessibilityNodeInfo): Boolean {
-        // Strategy 1: Look for WhatsApp's official send button resource id (both text & media)
-        val sendById = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send")
-        if (sendById != null && sendById.isNotEmpty()) {
-            for (node in sendById) {
-                if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                    return true
+        // Strategy 1: Look for WhatsApp's official send button resource IDs (chat & media preview)
+        val candidateIds = listOf(
+            "com.whatsapp:id/send",
+            "com.whatsapp:id/send_btn",
+            "com.whatsapp.w4b:id/send",
+            "com.whatsapp.w4b:id/send_btn"
+        )
+        for (id in candidateIds) {
+            val nodes = root.findAccessibilityNodeInfosByViewId(id)
+            if (!nodes.isNullOrEmpty()) {
+                for (node in nodes) {
+                    if (clickNodeOrParent(node)) {
+                        return true
+                    }
                 }
             }
         }
 
-        // Strategy 2: Look for WhatsApp Business send button id
-        val businessSendById = root.findAccessibilityNodeInfosByViewId("com.whatsapp.w4b:id/send")
-        if (businessSendById != null && businessSendById.isNotEmpty()) {
-            for (node in businessSendById) {
-                if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                    return true
-                }
-            }
-        }
-
-        // Strategy 3: Search by content description (supports international / localized WhatsApp)
+        // Strategy 2: Search by content description (Send / Bhejein)
         return searchAndClickByContentDescription(root)
+    }
+
+    private fun clickNodeOrParent(node: AccessibilityNodeInfo?): Boolean {
+        var current = node
+        var depth = 0
+        while (current != null && depth < 4) {
+            if (current.isClickable && current.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                return true
+            }
+            current = current.parent
+            depth++
+        }
+        return false
     }
 
     private fun searchAndClickByContentDescription(node: AccessibilityNodeInfo): Boolean {
         val desc = node.contentDescription?.toString()
         if (desc != null && (desc.equals("Send", ignoreCase = true) || desc.equals("Bhejein", ignoreCase = true))) {
-            if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+            if (clickNodeOrParent(node)) {
                 return true
             }
         }

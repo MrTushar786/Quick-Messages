@@ -14,19 +14,9 @@ class MessageRepository(
 
     val recipientFlow: Flow<Recipient> = dataStore.recipientFlow
     val messagesFlow: Flow<List<QuickMessage>> = dataStore.messagesFlow
-    val dispatchModeFlow: Flow<com.example.data.models.DispatchMode> = dataStore.dispatchModeFlow
 
     suspend fun getRecipient(): Recipient {
         return recipientFlow.first()
-    }
-
-    suspend fun getDispatchMode(): com.example.data.models.DispatchMode {
-        return dispatchModeFlow.first()
-    }
-
-    suspend fun updateDispatchMode(mode: com.example.data.models.DispatchMode) {
-        dataStore.saveDispatchMode(mode)
-        WidgetUpdater.update(context)
     }
 
     suspend fun getMessages(): List<QuickMessage> {

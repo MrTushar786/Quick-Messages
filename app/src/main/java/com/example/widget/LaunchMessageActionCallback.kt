@@ -4,9 +4,6 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import com.example.accessibility.WhatsAppAutoSendService
-import com.example.data.MessageRepository
-import com.example.data.models.DispatchMode
 import com.example.data.models.Recipient
 import com.example.utils.WhatsAppHelper
 
@@ -35,13 +32,6 @@ class LaunchMessageActionCallback : ActionCallback {
             countryCode = code,
             phoneNumber = phone
         )
-
-        val repository = MessageRepository(context)
-        val mode = repository.getDispatchMode()
-
-        if (mode == DispatchMode.WHATSAPP_AUTO) {
-            WhatsAppAutoSendService.armAutoSend()
-        }
 
         WhatsAppHelper.launchWhatsApp(
             context = context,
